@@ -1,0 +1,31 @@
+//
+//  LineItem.swift
+//  FlowLedger
+//
+//  Created by Pankaj Gaikar on 02/11/25.
+//
+
+import Foundation
+import SwiftData
+
+@Model
+final class LineItem {
+    var id: UUID
+    var description: String
+    var quantity: Double
+    var unitPrice: Decimal
+    var createdAt: Date
+    
+    init(description: String, quantity: Double, unitPrice: Decimal) {
+        self.id = UUID()
+        self.description = description
+        self.quantity = quantity
+        self.unitPrice = unitPrice
+        self.createdAt = Date()
+    }
+    
+    var total: Decimal {
+        Decimal(quantity) * unitPrice
+    }
+}
+
