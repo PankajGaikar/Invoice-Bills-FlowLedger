@@ -23,143 +23,176 @@ struct InvoiceDetailView: View {
     
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Client") {
-                    TextField("Client Name", text: $viewModel.clientName)
-                    TextField("Email (optional)", text: $viewModel.clientEmail)
-                        .keyboardType(.emailAddress)
-                        .autocapitalization(.none)
+            invoiceForm
+                .navigationTitle(viewModel.invoice?.invoiceNumber ?? "New Invoice")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    toolbarContent
                 }
-                
-                Section("Line Items") {
-                    ForEach(Array(viewModel.lineItems.enumerated()), id: \.element.id) { index, item in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(item.itemDescription)
-                                Text("\(item.quantity, specifier: "%.2f") × \(item.unitPrice, specifier: "%.2f")")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            CurrencyText(amount: item.total)
+                .onChange(of: viewModel.taxRate) { _, _ in
+                    viewModel.updateTotals()
+                }
+                .onChange(of: viewModel.discount) { _, _ in
+                    viewModel.updateTotals()
+                }
+                .sheet(isPresented: $showingShareSheet) {
+                    if let url = pdfURL {
+                        ShareSheet(items: [url])
+                    }
+                }
+        }
+    }
+    
+    @ViewBuilder
+    private var invoiceForm: some View {
+        Form {
+            clientSection
+            lineItemsSection
+            detailsSection
+            totalsSection
+            statusSection
+        }
+    }
+    
+    @ViewBuilder
+    private var clientSection: some View {
+        Section("Client") {
+            TextField("Client Name", text: $viewModel.clientName)
+            TextField("Email (optional)", text: $viewModel.clientEmail)
+                .keyboardType(.emailAddress)
+                .autocapitalization(.none)
+        }
+    }
+    
+    @ViewBuilder
+    private var lineItemsSection: some View {
+        Section("Line Items") {
+            ForEach(Array(viewModel.lineItems.enumerated()), id: \.element.id) { index, item in
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(item.itemDescription)
+                        Text("\(item.quantity, specifier: "%.2f") × \(item.unitPrice, specifier: "%.2f")")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    CurrencyText(amount: item.total)
+                }
+            }
+            .onDelete { indexSet in
+                for index in indexSet {
+                    viewModel.removeLineItem(at: index)
+                }
+            }
+            
+            Button("Add Line Item") {
+                viewModel.addLineItem(
+                    description: "Item",
+                    quantity: 1,
+                    unitPrice: 0
+                )
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var detailsSection: some View {
+        Section("Details") {
+            DatePicker("Due Date", selection: $viewModel.dueDate, displayedComponents: .date)
+            
+            HStack {
+                Text("Tax Rate")
+                Spacer()
+                TextField("0.18", value: $viewModel.taxRate, format: .number)
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 100)
+            }
+            
+            HStack {
+                Text("Discount")
+                Spacer()
+                TextField("0", value: $viewModel.discount, format: .number)
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 100)
+            }
+            
+            TextField("Notes (optional)", text: $viewModel.notes, axis: .vertical)
+                .lineLimit(3...6)
+        }
+    }
+    
+    @ViewBuilder
+    private var totalsSection: some View {
+        Section("Totals") {
+            HStack {
+                Text("Subtotal")
+                Spacer()
+                CurrencyText(amount: viewModel.subtotal)
+            }
+            
+            HStack {
+                Text("Tax")
+                Spacer()
+                CurrencyText(amount: viewModel.tax)
+            }
+            
+            HStack {
+                Text("Total")
+                    .font(Theme.bodyFont(size: 18, weight: .bold))
+                Spacer()
+                CurrencyText(amount: viewModel.total, font: Theme.monospacedFont(size: 18))
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var statusSection: some View {
+        if let invoice = viewModel.invoice {
+            Section("Status") {
+                Picker("Status", selection: Binding(
+                    get: { invoice.invoiceStatus },
+                    set: { newStatus in
+                        invoice.invoiceStatus = newStatus
+                        if newStatus == .paid {
+                            invoice.paidDate = Date()
                         }
+                        viewModel.updateTotals()
                     }
-                    .onDelete { indexSet in
-                        for index in indexSet {
-                            viewModel.removeLineItem(at: index)
-                        }
-                    }
-                    
-                    Button("Add Line Item") {
-                        viewModel.addLineItem(
-                            description: "Item",
-                            quantity: 1,
-                            unitPrice: 0
-                        )
-                    }
-                }
-                
-                Section("Details") {
-                    DatePicker("Due Date", selection: $viewModel.dueDate, displayedComponents: .date)
-                    
-                    HStack {
-                        Text("Tax Rate")
-                        Spacer()
-                        TextField("0.18", value: $viewModel.taxRate, format: .number)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
-                    }
-                    
-                    HStack {
-                        Text("Discount")
-                        Spacer()
-                        TextField("0", value: $viewModel.discount, format: .number)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
-                    }
-                    
-                    TextField("Notes (optional)", text: $viewModel.notes, axis: .vertical)
-                        .lineLimit(3...6)
-                }
-                
-                Section("Totals") {
-                    HStack {
-                        Text("Subtotal")
-                        Spacer()
-                        CurrencyText(amount: viewModel.subtotal)
-                    }
-                    
-                    HStack {
-                        Text("Tax")
-                        Spacer()
-                        CurrencyText(amount: viewModel.tax)
-                    }
-                    
-                    HStack {
-                        Text("Total")
-                            .font(Theme.bodyFont(size: 18, weight: .bold))
-                        Spacer()
-                        CurrencyText(amount: viewModel.total, font: Theme.monospacedFont(size: 18))
-                    }
-                }
-                
-                if let invoice = viewModel.invoice {
-                    Section("Status") {
-                        Picker("Status", selection: Binding(
-                            get: { invoice.invoiceStatus },
-                            set: { newStatus in
-                                invoice.invoiceStatus = newStatus
-                                if newStatus == .paid {
-                                    invoice.paidDate = Date()
-                                }
-                                viewModel.updateTotals()
-                            }
-                        )) {
-                            Text("Draft").tag(InvoiceStatus.draft)
-                            Text("Sent").tag(InvoiceStatus.sent)
-                            Text("Paid").tag(InvoiceStatus.paid)
-                        }
-                    }
+                )) {
+                    Text("Draft").tag(InvoiceStatus.draft)
+                    Text("Sent").tag(InvoiceStatus.sent)
+                    Text("Paid").tag(InvoiceStatus.paid)
                 }
             }
-            .navigationTitle(viewModel.invoice?.invoiceNumber ?? "New Invoice")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        viewModel.save()
-                        dismiss()
-                    }
-                    .disabled(viewModel.isSaving)
-                }
-                ToolbarItem(placement: .primaryAction) {
-                    if viewModel.invoice != nil {
-                        Button {
-                            exportPDF()
-                        } label: {
-                            Label("Share PDF", systemImage: "square.and.arrow.up")
-                        }
-                    }
-                }
+        }
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button("Cancel") {
+                dismiss()
             }
-            .onChange(of: viewModel.taxRate) { _, _ in
-                viewModel.updateTotals()
+        }
+        ToolbarItem(placement: .confirmationAction) {
+            Button("Save") {
+                viewModel.save()
+                dismiss()
             }
-            .onChange(of: viewModel.discount) { _, _ in
-                viewModel.updateTotals()
-            }
-            .sheet(isPresented: $showingShareSheet) {
-                if let url = pdfURL {
-                    ShareSheet(items: [url])
+            .disabled(viewModel.isSaving)
+        }
+        ToolbarItem(placement: .primaryAction) {
+            if viewModel.invoice != nil {
+                Button {
+                    exportPDF()
+                } label: {
+                    Label("Share PDF", systemImage: "square.and.arrow.up")
                 }
             }
+        }
+    }
         }
     }
     
