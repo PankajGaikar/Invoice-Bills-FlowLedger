@@ -16,6 +16,8 @@ class DashboardViewModel: ObservableObject {
     @Published var billsDue: Decimal = 0
     @Published var net: Decimal = 0
     @Published var forecast: [DashboardRepository.ForecastPoint] = []
+    @Published var recentInvoices: [Invoice] = []
+    @Published var upcomingBills: [Subscription] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     
@@ -36,6 +38,8 @@ class DashboardViewModel: ObservableObject {
             net = metrics.net
             
             forecast = try repository.getNext30DaysForecast()
+            recentInvoices = try repository.getRecentInvoices(limit: 5)
+            upcomingBills = try repository.getUpcomingBills(limit: 5)
         } catch {
             errorMessage = "Failed to load metrics: \(error.localizedDescription)"
         }

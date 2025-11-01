@@ -93,5 +93,25 @@ class DashboardRepository {
         
         return points
     }
+    
+    func getRecentInvoices(limit: Int = 5) throws -> [Invoice] {
+        let allInvoices = try invoicesRepo.fetchAll()
+        return Array(allInvoices.prefix(limit))
+    }
+    
+    func getUpcomingBills(limit: Int = 5) throws -> [Subscription] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        guard let futureDate = calendar.date(byAdding: .day, value: 30, to: today) else {
+            return []
+        }
+        
+        let activeSubscriptions = try subscriptionsRepo.fetchActive()
+        return activeSubscriptions
+            .filter { $0.nextDueDate >= today && $0.nextDueDate <= futureDate }
+            .sorted { $0.nextDueDate < $1.nextDueDate }
+            .prefix(limit)
+            .map { $0 }
+    }
 }
 

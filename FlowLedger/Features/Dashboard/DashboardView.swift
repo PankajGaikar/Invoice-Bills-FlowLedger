@@ -150,35 +150,92 @@ struct DashboardView: View {
             }
             .frame(maxWidth: .infinity)
             
-            // Column 2: Recent Invoices (simplified for now)
-            VStack(alignment: .leading, spacing: Theme.spacing2) {
-                Text("Recent Invoices")
-                    .font(Theme.headingFont(size: 18))
-                    .padding(.horizontal, Theme.spacing2)
-                
-                // TODO: Add recent invoices list
-                Text("No recent invoices")
-                    .foregroundColor(.secondary)
-                    .padding()
+            // Column 2: Recent Invoices
+            CardView {
+                VStack(alignment: .leading, spacing: Theme.spacing2) {
+                    Text("Recent Invoices")
+                        .font(Theme.headingFont(size: 18))
+                    
+                    if viewModel.recentInvoices.isEmpty {
+                        Text("No recent invoices")
+                            .font(Theme.bodyFont(size: 14))
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.vertical, Theme.spacing3)
+                    } else {
+                        ScrollView {
+                            VStack(spacing: Theme.spacing) {
+                                ForEach(viewModel.recentInvoices) { invoice in
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(invoice.invoiceNumber)
+                                                .font(Theme.bodyFont(size: 14, weight: .semibold))
+                                            if let client = invoice.client {
+                                                Text(client.name)
+                                                    .font(Theme.bodyFont(size: 12))
+                                                    .foregroundColor(.secondary)
+                                            }
+                                        }
+                                        Spacer()
+                                        VStack(alignment: .trailing, spacing: 4) {
+                                            CurrencyText(amount: invoice.total, font: Theme.monospacedFont(size: 14))
+                                            statusBadge(for: invoice.invoiceStatus)
+                                        }
+                                    }
+                                    .padding(.vertical, 4)
+                                    
+                                    if invoice.id != viewModel.recentInvoices.last?.id {
+                                        Divider()
+                                    }
+                                }
+                            }
+                        }
+                        .frame(maxHeight: 200)
+                    }
+                }
             }
             .frame(maxWidth: .infinity)
-            .background(Color(uiColor: .systemBackground))
-            .cornerRadius(Theme.cardCornerRadius)
             
-            // Column 3: Upcoming Bills (simplified for now)
-            VStack(alignment: .leading, spacing: Theme.spacing2) {
-                Text("Upcoming Bills")
-                    .font(Theme.headingFont(size: 18))
-                    .padding(.horizontal, Theme.spacing2)
-                
-                // TODO: Add upcoming bills list
-                Text("No upcoming bills")
-                    .foregroundColor(.secondary)
-                    .padding()
+            // Column 3: Upcoming Bills
+            CardView {
+                VStack(alignment: .leading, spacing: Theme.spacing2) {
+                    Text("Upcoming Bills")
+                        .font(Theme.headingFont(size: 18))
+                    
+                    if viewModel.upcomingBills.isEmpty {
+                        Text("No upcoming bills")
+                            .font(Theme.bodyFont(size: 14))
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.vertical, Theme.spacing3)
+                    } else {
+                        ScrollView {
+                            VStack(spacing: Theme.spacing) {
+                                ForEach(viewModel.upcomingBills) { subscription in
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(subscription.name)
+                                                .font(Theme.bodyFont(size: 14, weight: .semibold))
+                                            Text(formatDueDate(subscription.nextDueDate))
+                                                .font(Theme.bodyFont(size: 12))
+                                                .foregroundColor(dueDateColor(for: subscription.nextDueDate))
+                                        }
+                                        Spacer()
+                                        CurrencyText(amount: subscription.amount, font: Theme.monospacedFont(size: 14))
+                                    }
+                                    .padding(.vertical, 4)
+                                    
+                                    if subscription.id != viewModel.upcomingBills.last?.id {
+                                        Divider()
+                                    }
+                                }
+                            }
+                        }
+                        .frame(maxHeight: 200)
+                    }
+                }
             }
             .frame(maxWidth: .infinity)
-            .background(Color(uiColor: .systemBackground))
-            .cornerRadius(Theme.cardCornerRadius)
         }
         .padding(Theme.spacing2)
         
@@ -253,6 +310,59 @@ struct KPICard: View {
                     .foregroundColor(color)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+extension DashboardView {
+    @ViewBuilder
+    func statusBadge(for status: InvoiceStatus) -> some View {
+        let (color, text) = {
+            switch status {
+            case .draft: return (Theme.warning, "Draft")
+            case .sent: return (Theme.accent, "Sent")
+            case .paid: return (Theme.success, "Paid")
+            }
+        }()
+        
+        Text(text)
+            .font(Theme.bodyFont(size: 10, weight: .medium))
+            .foregroundColor(color)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(color.opacity(0.1))
+            .cornerRadius(4)
+    }
+    
+    func formatDueDate(_ date: Date) -> String {
+        let calendar = Calendar.current
+        let daysUntil = calendar.dateComponents([.day], from: Date(), to: date).day ?? 0
+        
+        if daysUntil < 0 {
+            return "Overdue"
+        } else if daysUntil == 0 {
+            return "Due today"
+        } else if daysUntil == 1 {
+            return "Due tomorrow"
+        } else if daysUntil <= 7 {
+            return "Due in \(daysUntil) days"
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .short
+            return formatter.string(from: date)
+        }
+    }
+    
+    func dueDateColor(for date: Date) -> Color {
+        let calendar = Calendar.current
+        let daysUntil = calendar.dateComponents([.day], from: Date(), to: date).day ?? 0
+        
+        if daysUntil < 0 {
+            return Theme.danger
+        } else if daysUntil <= 3 {
+            return Theme.warning
+        } else {
+            return .secondary
         }
     }
 }
