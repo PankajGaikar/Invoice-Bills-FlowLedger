@@ -71,7 +71,7 @@ struct InvoiceDetailView: View {
                 HStack {
                     VStack(alignment: .leading) {
                         Text(item.itemDescription)
-                        Text("\(item.quantity, specifier: "%.2f") × \(item.unitPrice, specifier: "%.2f")")
+                        Text(formatLineItemPrice(quantity: item.quantity, unitPrice: item.unitPrice))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -193,7 +193,14 @@ struct InvoiceDetailView: View {
             }
         }
     }
-        }
+    
+    private func formatLineItemPrice(quantity: Double, unitPrice: Decimal) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        let priceString = formatter.string(from: unitPrice as NSDecimalNumber) ?? "0.00"
+        return String(format: "%.2f × %@", quantity, priceString)
     }
     
     private func exportPDF() {
