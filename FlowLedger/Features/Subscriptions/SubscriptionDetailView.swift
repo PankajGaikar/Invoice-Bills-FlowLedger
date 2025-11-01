@@ -76,6 +76,9 @@ struct SubscriptionDetailView: View {
 }
 
 #Preview {
-    SubscriptionDetailView(modelContext: ModelContext(try! ModelContainer(for: Subscription.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))), subscription: nil)
+    let schema = Schema([Subscription.self])
+    let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: schema, configurations: [config])
+    return SubscriptionDetailView(modelContext: ModelContext(container), subscription: nil)
 }
 

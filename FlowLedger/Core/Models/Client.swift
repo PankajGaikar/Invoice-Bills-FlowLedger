@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class Client {
+final class Client: Identifiable {
     var id: UUID
     var name: String
     var email: String?

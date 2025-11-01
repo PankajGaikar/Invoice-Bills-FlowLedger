@@ -183,6 +183,9 @@ struct ShareSheet: UIViewControllerRepresentable {
 }
 
 #Preview {
-    InvoiceDetailView(modelContext: ModelContext(try! ModelContainer(for: Invoice.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))), invoice: nil)
+    let schema = Schema([Invoice.self, Client.self, LineItem.self])
+    let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: schema, configurations: [config])
+    return InvoiceDetailView(modelContext: ModelContext(container), invoice: nil)
 }
 

@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class LineItem {
+final class LineItem: Identifiable {
     var id: UUID
     var description: String
     var quantity: Double

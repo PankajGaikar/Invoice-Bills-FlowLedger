@@ -15,7 +15,7 @@ enum InvoiceStatus: String, Codable {
 }
 
 @Model
-final class Invoice {
+final class Invoice: Identifiable {
     var id: UUID
     var invoiceNumber: String
     var status: String // InvoiceStatus as String for SwiftData compatibility

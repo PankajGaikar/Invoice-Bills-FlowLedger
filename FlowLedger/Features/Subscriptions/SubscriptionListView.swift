@@ -179,6 +179,9 @@ struct SubscriptionRowView: View {
 }
 
 #Preview {
-    SubscriptionListView(modelContext: ModelContext(try! ModelContainer(for: Subscription.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))))
+    let schema = Schema([Subscription.self])
+    let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: schema, configurations: [config])
+    return SubscriptionListView(modelContext: ModelContext(container))
 }
 

@@ -103,7 +103,10 @@ struct MainTabView: View {
 }
 
 #Preview {
-    MainTabView()
-        .modelContainer(for: [Invoice.self, Subscription.self, AppSettings.self], inMemory: true)
+    let schema = Schema([Invoice.self, Subscription.self, AppSettings.self, Client.self, LineItem.self])
+    let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: schema, configurations: [config])
+    return MainTabView()
+        .modelContainer(container)
 }
 

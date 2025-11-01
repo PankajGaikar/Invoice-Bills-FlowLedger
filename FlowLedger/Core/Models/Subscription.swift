@@ -16,7 +16,7 @@ enum SubscriptionCadence: String, Codable {
 }
 
 @Model
-final class Subscription {
+final class Subscription: Identifiable {
     var id: UUID
     var name: String
     var amount: Decimal

@@ -144,6 +144,9 @@ struct InvoiceRowView: View {
 }
 
 #Preview {
-    InvoiceListView(modelContext: ModelContext(try! ModelContainer(for: Invoice.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))))
+    let schema = Schema([Invoice.self, Client.self, LineItem.self])
+    let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: schema, configurations: [config])
+    return InvoiceListView(modelContext: ModelContext(container))
 }
 

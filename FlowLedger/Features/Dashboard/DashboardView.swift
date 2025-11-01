@@ -280,6 +280,9 @@ struct KPICard: View {
 }
 
 #Preview {
-    DashboardView(modelContext: ModelContext(try! ModelContainer(for: Invoice.self, Subscription.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))))
+    let schema = Schema([Invoice.self, Subscription.self, AppSettings.self])
+    let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: schema, configurations: [config])
+    return DashboardView(modelContext: ModelContext(container))
 }
 
