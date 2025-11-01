@@ -17,7 +17,8 @@ struct InvoiceDetailView: View {
     @State private var pdfURL: URL?
     
     init(modelContext: ModelContext, invoice: Invoice?) {
-        _viewModel = StateObject(wrappedValue: InvoiceDetailViewModel(modelContext: modelContext, invoice: invoice))
+        let viewModel = InvoiceDetailViewModel(modelContext: modelContext, invoice: invoice)
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
     
     var body: some View {
@@ -155,8 +156,8 @@ struct InvoiceDetailView: View {
                 viewModel.updateTotals()
             }
             .sheet(isPresented: $showingShareSheet) {
-                if let pdfURL = pdfURL {
-                    ShareSheet(items: [pdfURL])
+                if let url = pdfURL {
+                    ShareSheet(items: [url])
                 }
             }
         }

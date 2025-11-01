@@ -110,21 +110,9 @@ struct DashboardView: View {
                                     }
                                 }
                                 .chartYAxis {
-                                    AxisMarks { value in
+                                    AxisMarks(position: .trailing) { value in
                                         AxisGridLine()
-                                        AxisValueLabel {
-                                            if let intValue = value.as(Double.self) {
-                                                let formatter = NumberFormatter()
-                                                formatter.numberStyle = .currency
-                                                formatter.currencySymbol = "₹"
-                                                formatter.maximumFractionDigits = 0
-                                                Text(formatter.string(from: NSNumber(value: abs(intValue))) ?? "0")
-                                                    .font(.caption2)
-                                            } else {
-                                                Text("")
-                                                    .font(.caption2)
-                                            }
-                                        }
+                                        AxisValueLabel(format: .currency(code: "INR").precision(.fractionLength(0)))
                                     }
                                 }
                             }
@@ -236,21 +224,9 @@ struct DashboardView: View {
                         }
                     }
                     .chartYAxis {
-                        AxisMarks { value in
+                        AxisMarks(position: .trailing) { value in
                             AxisGridLine()
-                            AxisValueLabel {
-                                if let intValue = value.as(Double.self) {
-                                    let formatter = NumberFormatter()
-                                    formatter.numberStyle = .currency
-                                    formatter.currencySymbol = "₹"
-                                    formatter.maximumFractionDigits = 0
-                                    Text(formatter.string(from: NSNumber(value: abs(intValue))) ?? "0")
-                                        .font(.caption2)
-                                } else {
-                                    Text("")
-                                        .font(.caption2)
-                                }
-                            }
+                            AxisValueLabel(format: .currency(code: "INR").precision(.fractionLength(0)))
                         }
                     }
                 }
