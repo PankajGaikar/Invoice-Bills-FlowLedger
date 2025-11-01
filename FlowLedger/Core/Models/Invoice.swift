@@ -20,7 +20,8 @@ final class Invoice {
     var invoiceNumber: String
     var status: String // InvoiceStatus as String for SwiftData compatibility
     var client: Client?
-    var lineItems: [LineItem]
+    @Relationship(deleteRule: .cascade, inverse: \LineItem.invoice)
+    var lineItems: [LineItem] = []
     var subtotal: Decimal
     var taxRate: Decimal // e.g., 0.18 for 18%
     var discount: Decimal // absolute amount
