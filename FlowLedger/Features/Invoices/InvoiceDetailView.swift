@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct InvoiceDetailView: View {
     @Environment(\.dismiss) private var dismiss

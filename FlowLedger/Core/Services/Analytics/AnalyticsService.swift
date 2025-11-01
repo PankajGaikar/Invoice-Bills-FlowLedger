@@ -39,10 +39,13 @@ class AnalyticsService {
     }
     
     func logInvoiceCreated(lineCount: Int, hasTax: Bool, subtotal: Decimal) {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        let subtotalString = formatter.string(from: subtotal as NSDecimalNumber) ?? "0"
         logEvent("invoice_created", parameters: [
             "line_count": lineCount,
             "has_tax": hasTax,
-            "subtotal": subtotal.description
+            "subtotal": subtotalString
         ])
     }
     
@@ -62,7 +65,10 @@ class AnalyticsService {
     }
     
     func logBillMarkedPaid(amount: Decimal) {
-        logEvent("bill_marked_paid", parameters: ["amount": amount.description])
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        let amountString = formatter.string(from: amount as NSDecimalNumber) ?? "0"
+        logEvent("bill_marked_paid", parameters: ["amount": amountString])
     }
 }
 

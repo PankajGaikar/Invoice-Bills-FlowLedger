@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import UIKit
 import PDFKit
 
 enum PDFTemplate: String {
