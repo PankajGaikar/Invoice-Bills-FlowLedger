@@ -17,16 +17,39 @@ struct DashboardView: View {
         _viewModel = StateObject(wrappedValue: DashboardViewModel(modelContext: modelContext))
     }
     
+    private var isIPad: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad
+    }
+    
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: Theme.spacing2) {
-                    // KPIs
-                    LazyVGrid(columns: [
-                        GridItem(.flexible()),
-                        GridItem(.flexible()),
-                        GridItem(.flexible())
-                    ], spacing: Theme.spacing2) {
+            if isIPad {
+                // iPad: 3-column layout
+                iPadLayout
+            } else {
+                // iPhone: Stack layout
+                iPhoneLayout
+            }
+        }
+        .navigationTitle("Dashboard")
+        .refreshable {
+            viewModel.loadMetrics()
+        }
+        .onAppear {
+            viewModel.loadMetrics()
+        }
+    }
+    
+    @ViewBuilder
+    private var iPhoneLayout: some View {
+        ScrollView {
+            VStack(spacing: Theme.spacing2) {
+                // KPIs
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: Theme.spacing2) {
                         KPICard(
                             title: "Paid Income",
                             value: viewModel.paidIncome,
@@ -125,13 +148,113 @@ struct DashboardView: View {
                 }
                 .padding(.vertical, Theme.spacing2)
             }
-            .navigationTitle("Dashboard")
-            .refreshable {
-                viewModel.loadMetrics()
+    }
+    
+    @ViewBuilder
+    private var iPadLayout: some View {
+        HStack(alignment: .top, spacing: Theme.spacing2) {
+            // Column 1: KPIs
+            VStack(spacing: Theme.spacing2) {
+                KPICard(title: "Paid Income", value: viewModel.paidIncome, color: Theme.success)
+                KPICard(title: "Bills Due", value: viewModel.billsDue, color: Theme.warning)
+                KPICard(title: "Net", value: viewModel.net, color: viewModel.net >= 0 ? Theme.success : Theme.danger)
             }
-            .onAppear {
-                viewModel.loadMetrics()
+            .frame(maxWidth: .infinity)
+            
+            // Column 2: Recent Invoices (simplified for now)
+            VStack(alignment: .leading, spacing: Theme.spacing2) {
+                Text("Recent Invoices")
+                    .font(Theme.headingFont(size: 18))
+                    .padding(.horizontal, Theme.spacing2)
+                
+                // TODO: Add recent invoices list
+                Text("No recent invoices")
+                    .foregroundColor(.secondary)
+                    .padding()
             }
+            .frame(maxWidth: .infinity)
+            .background(Color(uiColor: .systemBackground))
+            .cornerRadius(Theme.cardCornerRadius)
+            
+            // Column 3: Upcoming Bills (simplified for now)
+            VStack(alignment: .leading, spacing: Theme.spacing2) {
+                Text("Upcoming Bills")
+                    .font(Theme.headingFont(size: 18))
+                    .padding(.horizontal, Theme.spacing2)
+                
+                // TODO: Add upcoming bills list
+                Text("No upcoming bills")
+                    .foregroundColor(.secondary)
+                    .padding()
+            }
+            .frame(maxWidth: .infinity)
+            .background(Color(uiColor: .systemBackground))
+            .cornerRadius(Theme.cardCornerRadius)
+        }
+        .padding(Theme.spacing2)
+        
+        // Forecast chart at bottom (full width)
+        if !viewModel.forecast.isEmpty {
+            CardView {
+                VStack(alignment: .leading, spacing: Theme.spacing2) {
+                    Text("Next 30 Days Forecast")
+                        .font(Theme.headingFont(size: 18))
+                    
+                    Chart(viewModel.forecast, id: \.date) { point in
+                        LineMark(
+                            x: .value("Date", point.date, unit: .day),
+                            y: .value("Inflow", point.inflow)
+                        )
+                        .foregroundStyle(Theme.success)
+                        .interpolationMethod(.catmullRom)
+                        
+                        LineMark(
+                            x: .value("Date", point.date, unit: .day),
+                            y: .value("Outflow", -point.outflow)
+                        )
+                        .foregroundStyle(Theme.danger)
+                        .interpolationMethod(.catmullRom)
+                        
+                        AreaMark(
+                            x: .value("Date", point.date, unit: .day),
+                            y: .value("Net", point.inflow - point.outflow)
+                        )
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Theme.accent.opacity(0.3), Theme.accent.opacity(0.0)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                    }
+                    .frame(height: 300)
+                    .chartXAxis {
+                        AxisMarks(values: .stride(by: .day, count: 5)) { value in
+                            AxisGridLine()
+                            AxisValueLabel(format: .dateTime.month().day(), centered: true)
+                        }
+                    }
+                    .chartYAxis {
+                        AxisMarks { value in
+                            AxisGridLine()
+                            AxisValueLabel {
+                                if let intValue = value.as(Double.self) {
+                                    let formatter = NumberFormatter()
+                                    formatter.numberStyle = .currency
+                                    formatter.currencySymbol = "₹"
+                                    formatter.maximumFractionDigits = 0
+                                    if let formatted = formatter.string(from: NSNumber(value: abs(intValue))) {
+                                        Text(formatted)
+                                            .font(.caption2)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, Theme.spacing2)
+            .padding(.bottom, Theme.spacing2)
         }
     }
 }

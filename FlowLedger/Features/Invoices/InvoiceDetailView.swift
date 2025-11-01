@@ -12,6 +12,8 @@ struct InvoiceDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @StateObject private var viewModel: InvoiceDetailViewModel
+    @State private var showingShareSheet = false
+    @State private var pdfURL: URL?
     
     init(modelContext: ModelContext, invoice: Invoice?) {
         _viewModel = StateObject(wrappedValue: InvoiceDetailViewModel(modelContext: modelContext, invoice: invoice))
@@ -135,6 +137,15 @@ struct InvoiceDetailView: View {
                     }
                     .disabled(viewModel.isSaving)
                 }
+                ToolbarItem(placement: .primaryAction) {
+                    if viewModel.invoice != nil {
+                        Button {
+                            exportPDF()
+                        } label: {
+                            Label("Share PDF", systemImage: "square.and.arrow.up")
+                        }
+                    }
+                }
             }
             .onChange(of: viewModel.taxRate) { _, _ in
                 viewModel.updateTotals()
@@ -142,8 +153,33 @@ struct InvoiceDetailView: View {
             .onChange(of: viewModel.discount) { _, _ in
                 viewModel.updateTotals()
             }
+            .sheet(isPresented: $showingShareSheet) {
+                if let pdfURL = pdfURL {
+                    ShareSheet(items: [pdfURL])
+                }
+            }
         }
     }
+    
+    private func exportPDF() {
+        guard let invoice = viewModel.invoice else { return }
+        pdfURL = PDFRenderer.shared.renderPDF(for: invoice)
+        if pdfURL != nil {
+            showingShareSheet = true
+            AnalyticsService.shared.logEvent("invoice_pdf_exported", parameters: ["template": "clean"])
+        }
+    }
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 #Preview {
