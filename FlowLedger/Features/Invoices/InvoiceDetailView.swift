@@ -34,7 +34,7 @@ struct InvoiceDetailView: View {
                     ForEach(Array(viewModel.lineItems.enumerated()), id: \.element.id) { index, item in
                         HStack {
                             VStack(alignment: .leading) {
-                                Text(item.description)
+                                Text(item.itemDescription)
                                 Text("\(item.quantity, specifier: "%.2f") × \(item.unitPrice, specifier: "%.2f")")
                                     .font(.caption)
                                     .foregroundColor(.secondary)

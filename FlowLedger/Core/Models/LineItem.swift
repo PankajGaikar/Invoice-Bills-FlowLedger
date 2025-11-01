@@ -11,7 +11,7 @@ import SwiftData
 @Model
 final class LineItem: Identifiable {
     var id: UUID
-    var description: String
+    var itemDescription: String
     var quantity: Double
     var unitPrice: Decimal
     var createdAt: Date
@@ -19,7 +19,7 @@ final class LineItem: Identifiable {
     
     init(description: String, quantity: Double, unitPrice: Decimal) {
         self.id = UUID()
-        self.description = description
+        self.itemDescription = description
         self.quantity = quantity
         self.unitPrice = unitPrice
         self.createdAt = Date()

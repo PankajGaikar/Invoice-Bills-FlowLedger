@@ -118,10 +118,11 @@ struct DashboardView: View {
                                                 formatter.numberStyle = .currency
                                                 formatter.currencySymbol = "₹"
                                                 formatter.maximumFractionDigits = 0
-                                                if let formatted = formatter.string(from: NSNumber(value: abs(intValue))) {
-                                                    Text(formatted)
-                                                        .font(.caption2)
-                                                }
+                                                Text(formatter.string(from: NSNumber(value: abs(intValue))) ?? "0")
+                                                    .font(.caption2)
+                                            } else {
+                                                Text("")
+                                                    .font(.caption2)
                                             }
                                         }
                                     }
@@ -243,10 +244,11 @@ struct DashboardView: View {
                                     formatter.numberStyle = .currency
                                     formatter.currencySymbol = "₹"
                                     formatter.maximumFractionDigits = 0
-                                    if let formatted = formatter.string(from: NSNumber(value: abs(intValue))) {
-                                        Text(formatted)
-                                            .font(.caption2)
-                                    }
+                                    Text(formatter.string(from: NSNumber(value: abs(intValue))) ?? "0")
+                                        .font(.caption2)
+                                } else {
+                                    Text("")
+                                        .font(.caption2)
                                 }
                             }
                         }

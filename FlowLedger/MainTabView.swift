@@ -76,10 +76,14 @@ struct MainTabView: View {
     
     @ViewBuilder
     private var sidebarView: some View {
-        List(selection: $selectedItem) {
+        List {
             ForEach(NavigationItem.allCases, id: \.self) { item in
-                Label(item.rawValue, systemImage: item.icon)
-                    .tag(item)
+                Button {
+                    selectedItem = item
+                } label: {
+                    Label(item.rawValue, systemImage: item.icon)
+                        .foregroundColor(selectedItem == item ? Theme.primary : .primary)
+                }
             }
         }
         .navigationTitle("FlowLedger")

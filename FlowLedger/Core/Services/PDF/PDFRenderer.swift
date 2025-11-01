@@ -119,7 +119,7 @@ class PDFRenderer {
             ]
             
             for item in invoice.lineItems {
-                item.description.draw(at: CGPoint(x: 24, y: currentY), withAttributes: itemAttributes)
+                item.itemDescription.draw(at: CGPoint(x: 24, y: currentY), withAttributes: itemAttributes)
                 "\(item.quantity)".draw(at: CGPoint(x: pageWidth / 2, y: currentY), withAttributes: itemAttributes)
                 "₹\(item.unitPrice)".draw(at: CGPoint(x: pageWidth / 2 + 80, y: currentY), withAttributes: itemAttributes)
                 "₹\(item.total)".draw(at: CGPoint(x: pageWidth - 100, y: currentY), withAttributes: itemAttributes)

@@ -6,9 +6,9 @@
 //
 
 import Foundation
+import Combine
 import SwiftData
 import SwiftUI
-import Combine
 
 @MainActor
 class SubscriptionsViewModel: ObservableObject {
