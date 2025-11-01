@@ -15,6 +15,7 @@ final class LineItem {
     var quantity: Double
     var unitPrice: Decimal
     var createdAt: Date
+    var invoice: Invoice?
     
     init(description: String, quantity: Double, unitPrice: Decimal) {
         self.id = UUID()
